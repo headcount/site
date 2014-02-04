@@ -4,7 +4,8 @@
 Core vault and secrets module
 [core:docstring]
 
-#. The  Vault -={
+#. The Vault -={
+
 core:import gpg
 
 core:requires pwgen
@@ -16,7 +17,7 @@ g_VAULT_TMP=${SITE_USER_TMP}/vault.killme
 g_VAULT_TS=${SITE_USER_TMP}/vault.timestamp
 g_VAULT_BU=${SITE_USER_TMP}/vault.$(date +'%Y%m%d')
 
-#. Private -={
+#. private -={
 #function ::vault:draw() {
 #    ${HOME}/bin/gpg2png $1
 #    cp $1.png ~/vault.png
@@ -160,12 +161,16 @@ function vault:edit() {
             if [ ${g_VAULT_TMP} -nt ${g_VAULT_TS} ]; then
                 cpf "Encrypting secrets..."
                 #::vault:draw ${g_VAULT_TMP}
-                mv ${g_VAULT} ${g_VAULT_BU}
+                mv --force ${g_VAULT} ${g_VAULT_BU}
                 :gpg:encrypt ${g_VAULT_TMP} ${g_VAULT}
                 e=$?
+                theme HAS_AUTOED $e
             fi
         fi
+
+        cpf "Shredding remains..."
         ::vault:clean
+        theme HAS_AUTOED $e
     fi
 
     return $e
@@ -173,6 +178,27 @@ function vault:edit() {
 
 #. }=-
 #. read -={
+function :vault:read() {
+    local -i e=${CODE_FAILURE}
+
+    local vault="${g_VAULT}"
+    local sid
+    if [ $# -eq 1 ]; then
+        sid="$1"
+    elif [ $# -eq 2 ]; then
+        vault="$1"
+        sid="$2"
+    else
+        core:raise EXCEPTION_BAD_FN_CALL
+    fi
+
+    :gpg:decrypt "${vault}" - |
+        awk 'BEGIN{e=1};$1~/^\<'${sid}'\>/{print$2;e=0};END{exit(e)}'
+    e=$?
+
+    return $e
+}
+
 function vault:read:usage() { echo "<secret-id> [<vault>]"; }
 function vault:read() {
     local -i e=${CODE_DEFAULT}
@@ -184,12 +210,7 @@ function vault:read() {
         [ ! -t 1 ] || cpf "Checking for secret id %{r:%s}..." "${secret}"
 
         local -a secrets
-        secrets=(
-            "$(
-                :gpg:decrypt "${vault}" - |
-                    awk 'BEGIN{e=1};$1~/^\<'${secret}'\>/{print$2;e=0};END{exit(e)}';
-            )"
-        )
+        secrets=$(:vault:read "${vault}" "${secret}")
         e=$?
 
         if [ $e -eq 0 -a ${#secrets[@]} -eq 1 ]; then
