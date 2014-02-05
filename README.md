@@ -31,8 +31,11 @@ Here are the currently developing site modules:
 | git           | :full_moon:             | Auxiliary Git helper module                                         |
 | dns           | :last_quarter_moon:     | Core DNS module                                                     |
 | ldap          | :last_quarter_moon:     | The site LDAP module                                                |
-| mongo         | :last_quarter_moon:     | MongoDB helper module                                               |
-| softlayer     | :last_quarter_moon:     | Core Softlayer API module                                           |
+| mongo         | :new_moon:              | MongoDB helper module                                               |
+| softlayer     | :new_moon:              | Softlayer CLI interface                                             |
+| pagerduty     | :new_moon:              | PagerDuty CLI interface                                             |
+| tunnel        | :new_moon:              | Secure shell tunnelling wrapper                                     |
+| capistrano    | :new_moon:              | Capistrano wrapper                                                  |
 
 ---
 
