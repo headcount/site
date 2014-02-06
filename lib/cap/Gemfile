@@ -1,0 +1,11 @@
+source 'https://rubygems.org'
+
+group :deployment do
+  gem 'ruby-progressbar'
+  gem 'capistrano', '<3'
+  gem 'capistrano-ext', '1.2'
+  gem 'capistrano-campfire', '0.2'
+  gem 'capistrano-multistage', '0.0.4'
+  gem 'mime-types', '1.25'
+  gem 'mechanize', '2.7'
+end

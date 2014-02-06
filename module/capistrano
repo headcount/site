@@ -1,0 +1,60 @@
+# vim: tw=0:ts=4:sw=4:et:ft=bash
+
+core:import util
+core:import hgd
+core:import vault
+
+core:requires cap
+core:requires ENV USER_CAPISTRANO
+
+:<<[core:docstring]
+Capistrano wrapper module
+[core:docstring]
+
+#cap invoke -q HOSTS="${qdnstr}" COMMAND="${@}"
+#cap site_run -q -s command="$*" HOSTS="${qdnstr}"
+
+function capistrano:cap:usage() { echo "<cap-task> <hgd> <context>"; }
+function capistrano:cap() {
+    local -i e=${CODE_DEFAULT}
+
+    if [ -d "${USER_CAPISTRANO?}" ]; then
+        local tldid=${g_TLDID?}
+        local captask="${1}"
+        local hgd=${2}
+        local context="${3}"
+
+        case $# in
+            0)
+                cd "${USER_CAPISTRANO?}"
+                cap -T
+                echo
+                e=${CODE_FAILURE}
+            ;;
+            1)
+                cd "${USER_CAPISTRANO?}"
+                cap -e ${captask}
+                e=${CODE_FAILURE}
+            ;;
+            3)
+                cd "${USER_CAPISTRANO?}"
+                qdns=( $(:hgd:resolve "${tldid}" "${hgd}") )
+                e=$?
+                if [ $e -eq ${CODE_SUCCESS?} ]; then
+                    local qdnstr=$(:util:join ',' qdns)
+                    export AWS_ACCESS_KEY=$(:vault:read AWS_ACCESS_KEY)
+                    export AWS_SECRET_KEY=$(:vault:read AWS_SECRET_KEY)
+                    cap ${captask} HOSTS="${qdnstr}" -Scontext="${context}"\
+                        -SawsAccessKey=${AWS_ACCESS_KEY}\
+                        -SawsSecretKey=${AWS_SECRET_KEY}
+                    e=$?
+                fi
+            ;;
+        esac
+    else
+        theme ERR_USAGE "${USER_CAPISTRANO?} does not exist"
+        e=${CODE_FAILURE?}
+    fi
+
+    return $e
+}

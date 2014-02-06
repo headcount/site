@@ -1,0 +1,24 @@
+#set :gateway, "www.capify.org"
+#role :libs, "private.capify.org"
+
+set  :user, ENV['USER_USERNAME']
+
+load 'config/ssh.rb'
+
+#role :bchosts, "server2600.obm"
+#desc "Demonstration"
+#task :demo, :roles => :bchosts do
+#    run "hostname"
+#end
+
+desc "Executes arbitrary commands"
+task :site_run do
+  #run "echo $CAPISTRANO:HOST$" do |c,s,d| { puts d }
+  run "#{command}" do |c,s,d|
+    printf("#{hostname} -=[\n")
+    printf("%s", d)
+    printf("]=-\n")
+  end
+end
+
+#cap invoke COMMAND="echo 'Hello World'" SUDO=1

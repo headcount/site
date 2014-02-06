@@ -72,6 +72,7 @@ declare -A CORE_MODULES=(
     [gpg]=1
     [vault]=1
     [tunnel]=1
+    [capistrano]=1
 )
 export CORE_MODULES
 
